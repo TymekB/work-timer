@@ -1,0 +1,4 @@
+.build/
+WorkTimer.app/
+*.png
+.DS_Store
