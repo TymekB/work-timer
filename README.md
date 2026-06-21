@@ -16,3 +16,20 @@ Aplikacja menu bar dla macOS, która liczy czas pracy programisty.
 ./build-app.sh
 open WorkTimer.app
 ```
+
+## Instalacja (zawsze uruchomiona)
+
+Instaluje aplikację w `~/Applications` i rejestruje LaunchAgent (`RunAtLoad` + `KeepAlive`),
+dzięki czemu startuje przy logowaniu i sam się restartuje po zamknięciu lub awarii.
+
+```bash
+./install.sh
+```
+
+Odinstalowanie:
+
+```bash
+launchctl bootout "gui/$(id -u)/net.morele.worktimer"
+rm ~/Library/LaunchAgents/net.morele.worktimer.plist
+rm -rf ~/Applications/WorkTimer.app
+```
