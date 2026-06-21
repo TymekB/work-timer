@@ -10,7 +10,7 @@ enum CountingState {
 final class TimeTracker {
     var idleThreshold: Double
     var claudeDetectionEnabled: Bool
-    var resetHour: Int
+    var resetHours: [Int]
     var isPaused = false
 
     private(set) var seconds: Double = 0
@@ -22,11 +22,11 @@ final class TimeTracker {
     private var currentDay: String
     private let defaults = UserDefaults.standard
 
-    init(idleThreshold: Double, claudeDetectionEnabled: Bool, resetHour: Int) {
+    init(idleThreshold: Double, claudeDetectionEnabled: Bool, resetHours: [Int]) {
         self.idleThreshold = idleThreshold
         self.claudeDetectionEnabled = claudeDetectionEnabled
-        self.resetHour = resetHour
-        self.currentDay = Self.dayKey(for: Date(), resetHour: resetHour)
+        self.resetHours = resetHours
+        self.currentDay = Self.periodKey(for: Date(), resetHours: resetHours)
         self.seconds = defaults.double(forKey: storageKey(for: currentDay))
     }
 
@@ -78,7 +78,7 @@ final class TimeTracker {
     }
 
     private func rolloverIfNeeded() {
-        let today = Self.dayKey(for: Date(), resetHour: resetHour)
+        let today = Self.periodKey(for: Date(), resetHours: resetHours)
         guard today != currentDay else { return }
         currentDay = today
         seconds = defaults.double(forKey: storageKey(for: today))
@@ -88,11 +88,25 @@ final class TimeTracker {
         "worktimer.seconds.\(day)"
     }
 
-    private static func dayKey(for date: Date, resetHour: Int) -> String {
-        let shifted = date.addingTimeInterval(-Double(resetHour) * 3600)
+    private static func periodKey(for date: Date, resetHours: [Int]) -> String {
+        let calendar = Calendar.current
+        let sortedHours = resetHours.sorted()
+        let startOfDay = calendar.startOfDay(for: date)
+
+        var boundary: Date?
+        for hour in sortedHours {
+            if let candidate = calendar.date(byAdding: .hour, value: hour, to: startOfDay), candidate <= date {
+                boundary = candidate
+            }
+        }
+        if boundary == nil, let lastHour = sortedHours.last,
+           let startOfYesterday = calendar.date(byAdding: .day, value: -1, to: startOfDay) {
+            boundary = calendar.date(byAdding: .hour, value: lastHour, to: startOfYesterday)
+        }
+
         let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
+        formatter.dateFormat = "yyyy-MM-dd-HH"
         formatter.locale = Locale(identifier: "en_US_POSIX")
-        return formatter.string(from: shifted)
+        return formatter.string(from: boundary ?? date)
     }
 }

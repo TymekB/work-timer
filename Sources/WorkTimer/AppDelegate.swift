@@ -8,7 +8,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let tracker = TimeTracker(
         idleThreshold: Config.idleThreshold,
         claudeDetectionEnabled: Config.claudeDetectionEnabled,
-        resetHour: Config.resetHour
+        resetHours: Config.resetHours
     )
     private let claudeMonitor = ClaudeMonitor(cpuThreshold: Config.claudeCpuThreshold)
 
