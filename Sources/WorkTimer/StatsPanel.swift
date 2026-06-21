@@ -23,7 +23,7 @@ final class StatsModel: ObservableObject {
         let total = days.reduce(0) { $0 + $1.seconds }
 
         let weekdayFormatter = DateFormatter()
-        weekdayFormatter.locale = Locale(identifier: "pl_PL")
+        weekdayFormatter.locale = Locale(identifier: "en_US")
         weekdayFormatter.dateFormat = "EEE"
 
         bars = days.map { day in
@@ -38,7 +38,7 @@ final class StatsModel: ObservableObject {
         totalText = Self.fullText(total)
 
         let rangeFormatter = DateFormatter()
-        rangeFormatter.locale = Locale(identifier: "pl_PL")
+        rangeFormatter.locale = Locale(identifier: "en_US")
         rangeFormatter.dateFormat = "dd.MM"
         if let first = days.first?.date, let last = days.last?.date {
             rangeText = "\(rangeFormatter.string(from: first)) – \(rangeFormatter.string(from: last))"
@@ -78,7 +78,7 @@ struct StatsView: View {
                 }
                 Spacer()
                 VStack(spacing: 2) {
-                    Text(model.weekOffset == 0 ? "Ten tydzień" : "Tydzień")
+                    Text(model.weekOffset == 0 ? "This week" : "Week")
                         .font(.headline)
                     Text(model.rangeText)
                         .font(.caption)
@@ -91,13 +91,13 @@ struct StatsView: View {
                 .disabled(model.weekOffset >= 0)
             }
 
-            Text("Razem: \(model.totalText)")
+            Text("Total: \(model.totalText)")
                 .font(.title2.bold())
 
             Chart(model.bars) { bar in
                 BarMark(
-                    x: .value("Dzień", bar.label),
-                    y: .value("Godziny", bar.hours)
+                    x: .value("Day", bar.label),
+                    y: .value("Hours", bar.hours)
                 )
                 .foregroundStyle(bar.isToday ? Color.green : Color.accentColor)
                 .cornerRadius(4)
@@ -108,7 +108,7 @@ struct StatsView: View {
                 }
             }
             .chartYScale(domain: 0...(maxHours * 1.2))
-            .chartYAxisLabel("godziny")
+            .chartYAxisLabel("hours")
             .frame(minHeight: 240)
         }
         .padding(20)

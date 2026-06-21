@@ -75,7 +75,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         button.attributedTitle = attributed
 
         statusInfoItem.title = statusDescription()
-        pauseItem.title = tracker.isPaused ? "Wznów" : "Wstrzymaj"
+        pauseItem.title = tracker.isPaused ? "Resume" : "Pause"
         claudeToggleItem.state = tracker.claudeDetectionEnabled ? .on : .off
         claudeInfoItem.title = claudeDescription()
         launchAtLoginItem.state = isLaunchAtLoginEnabled() ? .on : .off
@@ -83,22 +83,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func statusDescription() -> String {
         switch tracker.state {
-        case .user: return "Liczę — jesteś aktywny"
-        case .claude: return "Liczę — Claude pracuje"
-        case .away: return "Wstrzymane — brak aktywności"
-        case .paused: return "Wstrzymane ręcznie"
+        case .user: return "Counting — you're active"
+        case .claude: return "Counting — Claude is working"
+        case .away: return "Paused — inactive"
+        case .paused: return "Paused manually"
         }
     }
 
     private func claudeDescription() -> String {
         if !tracker.claudeDetectionEnabled {
-            return "Claude: wykrywanie wyłączone"
+            return "Claude: detection off"
         }
         let cpu = String(format: "%.0f%%", claudeMonitor.lastCpu)
         if !claudeMonitor.lastRunning {
-            return "Claude: nieuruchomiony"
+            return "Claude: not running"
         }
-        return claudeWorking ? "Claude: pracuje (\(cpu) CPU)" : "Claude: bezczynny (\(cpu) CPU)"
+        return claudeWorking ? "Claude: working (\(cpu) CPU)" : "Claude: idle (\(cpu) CPU)"
     }
 
     private func format(_ seconds: Double) -> String {
@@ -123,23 +123,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         menu.addItem(.separator())
 
-        let statsItem = NSMenuItem(title: "Statystyki tygodnia…", action: #selector(showStats), keyEquivalent: "s")
+        let statsItem = NSMenuItem(title: "Weekly statistics…", action: #selector(showStats), keyEquivalent: "s")
         statsItem.target = self
         menu.addItem(statsItem)
 
         menu.addItem(.separator())
 
-        pauseItem = NSMenuItem(title: "Wstrzymaj", action: #selector(togglePause), keyEquivalent: "p")
+        pauseItem = NSMenuItem(title: "Pause", action: #selector(togglePause), keyEquivalent: "p")
         pauseItem.target = self
         menu.addItem(pauseItem)
 
-        let resetItem = NSMenuItem(title: "Resetuj licznik", action: #selector(resetCounter), keyEquivalent: "r")
+        let resetItem = NSMenuItem(title: "Reset counter", action: #selector(resetCounter), keyEquivalent: "r")
         resetItem.target = self
         menu.addItem(resetItem)
 
         menu.addItem(.separator())
 
-        claudeToggleItem = NSMenuItem(title: "Licz, gdy Claude pracuje", action: #selector(toggleClaude), keyEquivalent: "")
+        claudeToggleItem = NSMenuItem(title: "Count while Claude works", action: #selector(toggleClaude), keyEquivalent: "")
         claudeToggleItem.target = self
         menu.addItem(claudeToggleItem)
 
@@ -150,18 +150,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             item.tag = minutes
             idleMenu.addItem(item)
         }
-        let idleParent = NSMenuItem(title: "Próg bezczynności", action: nil, keyEquivalent: "")
+        let idleParent = NSMenuItem(title: "Idle threshold", action: nil, keyEquivalent: "")
         idleParent.submenu = idleMenu
         menu.addItem(idleParent)
         syncIdleMenu(idleMenu)
 
         menu.addItem(.separator())
 
-        launchAtLoginItem = NSMenuItem(title: "Uruchamiaj przy starcie", action: #selector(toggleLaunchAtLogin), keyEquivalent: "")
+        launchAtLoginItem = NSMenuItem(title: "Launch at login", action: #selector(toggleLaunchAtLogin), keyEquivalent: "")
         launchAtLoginItem.target = self
         menu.addItem(launchAtLoginItem)
 
-        let quitItem = NSMenuItem(title: "Zakończ", action: #selector(quit), keyEquivalent: "q")
+        let quitItem = NSMenuItem(title: "Quit", action: #selector(quit), keyEquivalent: "q")
         quitItem.target = self
         menu.addItem(quitItem)
 
