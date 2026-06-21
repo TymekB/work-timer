@@ -1,8 +1,9 @@
 import AppKit
 import ServiceManagement
 
-final class AppDelegate: NSObject, NSApplicationDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var statusItem: NSStatusItem!
+    private var statsMenu: NSMenu!
     private var timer: Timer?
 
     private let tracker = TimeTracker(
@@ -122,6 +123,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         menu.addItem(.separator())
 
+        statsMenu = NSMenu()
+        statsMenu.delegate = self
+        statsMenu.autoenablesItems = false
+        let statsParent = NSMenuItem(title: "Statystyki tygodnia", action: nil, keyEquivalent: "")
+        statsParent.submenu = statsMenu
+        menu.addItem(statsParent)
+
+        menu.addItem(.separator())
+
         pauseItem = NSMenuItem(title: "Wstrzymaj", action: #selector(togglePause), keyEquivalent: "p")
         pauseItem.target = self
         menu.addItem(pauseItem)
@@ -165,6 +175,43 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let current = Int(tracker.idleThreshold / 60)
         for item in menu.items {
             item.state = item.tag == current ? .on : .off
+        }
+    }
+
+    func menuNeedsUpdate(_ menu: NSMenu) {
+        guard menu == statsMenu else { return }
+        rebuildStatsMenu()
+    }
+
+    private func rebuildStatsMenu() {
+        statsMenu.removeAllItems()
+
+        let now = Date()
+        let total = Statistics.currentWeekTotal(now: now)
+        let totalItem = NSMenuItem(title: "Razem (pon–pt): \(format(total))", action: nil, keyEquivalent: "")
+        totalItem.isEnabled = false
+        statsMenu.addItem(totalItem)
+
+        statsMenu.addItem(.separator())
+
+        let labelFormatter = DateFormatter()
+        labelFormatter.locale = Locale(identifier: "pl_PL")
+        labelFormatter.dateFormat = "EEE dd.MM"
+
+        let calendar = Calendar.current
+        for day in Statistics.currentWeekByDay(now: now) {
+            let isToday = calendar.isDate(day.date, inSameDayAs: now)
+            let label = labelFormatter.string(from: day.date)
+            let title = "\(label):  \(format(day.seconds))"
+            let item = NSMenuItem(title: title, action: nil, keyEquivalent: "")
+            item.isEnabled = false
+            if isToday {
+                item.attributedTitle = NSAttributedString(
+                    string: title,
+                    attributes: [.font: NSFont.boldSystemFont(ofSize: NSFont.systemFontSize)]
+                )
+            }
+            statsMenu.addItem(item)
         }
     }
 
